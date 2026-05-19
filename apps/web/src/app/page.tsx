@@ -44,11 +44,12 @@ export default function Home() {
           {/* Tag pills */}
           <div className="flex flex-wrap justify-center gap-2 pt-2">
             {[
-              "NQ MBO Data",
-              "Umar / Level 2 Order Flow",
-              "Python Engine",
-              "Walk-Forward Optimization",
-              "Monte Carlo",
+              "NT8 .cs Import → Export",
+              "NQ MBO Order Book",
+              "Auto Logic Translation",
+              "Walk-Forward Validation",
+              "Monte Carlo Permutation",
+              "Slippage Stress Test",
               "3D Cube Replay",
             ].map((tag) => (
               <span
@@ -183,12 +184,15 @@ export default function Home() {
             <div className="h-px flex-1 bg-slate-800" />
           </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-4 text-xs font-mono text-slate-400 justify-center">
+          <div className="flex flex-col md:flex-row items-center gap-3 text-xs font-mono text-slate-400 justify-center flex-wrap">
             {[
-              { label: "SSD", sub: "Raw .dbn MBO Files",    color: "#3b82f6" },
-              { label: "Python Engine", sub: "Parse → Simulate → Optimize", color: "#06b6d4" },
-              { label: "Results", sub: "JSON / Parquet",    color: "#8b5cf6" },
-              { label: "Dashboard", sub: "Next.js localhost:3000", color: "#ec4899" },
+              { label: "NT8 .cs Upload",   sub: "Your strategy file",      color: "#06b6d4" },
+              { label: "NT8 Parser",       sub: "Extract params + logic",   color: "#3b82f6" },
+              { label: "MBO Loader",       sub: "SSD .dbn data",            color: "#3b82f6" },
+              { label: "Translator",       sub: "NT8 → Python class",       color: "#8b5cf6" },
+              { label: "Simulator",        sub: "Backtest on MBO",          color: "#8b5cf6" },
+              { label: "Optimizer",        sub: "Find best params",         color: "#ec4899" },
+              { label: "NT8 Exporter",     sub: "Optimized .cs → NT8 live", color: "#ec4899" },
             ].map((node, i, arr) => (
               <div key={node.label} className="flex items-center gap-4">
                 <div className="text-center">

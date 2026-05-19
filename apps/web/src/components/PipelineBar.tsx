@@ -1,10 +1,10 @@
 const STEPS = [
-  { num: 1, label: "Select .cs",     sub: "Test Library",    done: true,  current: false },
-  { num: 2, label: "Analyze",         sub: "NT8 Parser",      done: true,  current: false },
-  { num: 3, label: "Build Strategy",  sub: "Signal Model",    done: false, current: true  },
-  { num: 4, label: "Backtest MBO",    sub: "Historical Data", done: false, current: false },
-  { num: 5, label: "Optimize",        sub: "Parameters",      done: false, current: false },
-  { num: 6, label: "Export NT8",      sub: "Strategy File",   done: false, current: false },
+  { num: 1, label: "Select .cs",      sub: "Test Library",    done: true,  current: false },
+  { num: 2, label: "Analyze",          sub: "NT8 Parser",      done: true,  current: false },
+  { num: 3, label: "Demo Simulator",   sub: "Synthetic Umar",  done: false, current: true  },
+  { num: 4, label: "Backtest MBO",     sub: "Historical Data", done: false, current: false },
+  { num: 5, label: "Optimize",         sub: "Parameters",      done: false, current: false },
+  { num: 6, label: "Export NT8",       sub: "Strategy File",   done: false, current: false },
 ];
 
 export default function PipelineBar() {
@@ -59,7 +59,7 @@ export default function PipelineBar() {
         <span className="status-dot bg-blue-500 dot-pulse" />
         <span className="text-xs text-gray-500">
           <span className="font-semibold text-blue-600">Current phase:</span>{" "}
-          Select + Analyze complete · Next: Strategy Definition Builder (Phase 3)
+          Phase 3 — Synthetic Umar Demo Simulator (Select + Analyze complete)
         </span>
       </div>
     </div>

@@ -165,19 +165,64 @@ python3 engine/scripts/analyze_nt8_file.py --file /path/to/TOWERUmar2_BALANCED_S
 
 ---
 
+## Running the Synthetic Umar Demo (CLI)
+
+```bash
+# List all scenarios
+python3 engine/scripts/run_synthetic_umar_demo.py --list
+
+# Run one scenario
+python3 engine/scripts/run_synthetic_umar_demo.py --scenario bullish_bid_defense_reversal
+
+# Run all six scenarios
+python3 engine/scripts/run_synthetic_umar_demo.py --all
+
+# JSON output (used by the Next.js API)
+python3 engine/scripts/run_synthetic_umar_demo.py --scenario bearish_ask_defense_reversal --json
+```
+
+Available scenarios:
+- `bullish_bid_defense_reversal` — expects: BUY_REVERSAL
+- `bearish_ask_defense_reversal` — expects: SELL_REVERSAL
+- `bullish_continuation_breakout` — expects: BUY_CONTINUATION
+- `bearish_continuation_breakdown` — expects: SELL_CONTINUATION
+- `neutral_no_trade` — expects: WAIT (no signal)
+- `one_signal_per_battle` — expects: ONE_BUY_REVERSAL (no duplicates)
+
+---
+
 ## Build Roadmap
 
-| Phase | Name                           | Status      |
-|-------|--------------------------------|-------------|
-| 1     | Engine Foundation              | ✅ Done     |
-| 2     | .cs Upload + NT8 File Analyzer | ✅ Done     |
-| 3     | Strategy Definition Builder    | Next        |
-| 4     | Databento MBO Loader           | Upcoming    |
-| 5     | Exact Umar Backtest Engine     | Upcoming    |
-| 6     | Optimizer                      | Upcoming    |
-| 7     | Robustness Validation          | Upcoming    |
-| 8     | NT8 Strategy Export            | Upcoming    |
-| 9     | 3D Strategy Cube Replay UI     | Upcoming    |
+| Phase | Name                              | Status      |
+|-------|-----------------------------------|-------------|
+| 1     | Engine Foundation                 | ✅ Done     |
+| 2     | .cs File Analysis + Test Library  | ✅ Done     |
+| 3     | Synthetic Umar Demo Simulator     | ✅ Done     |
+| 4     | Databento MBO Loader              | Next        |
+| 5     | Exact Umar Backtest Engine        | Upcoming    |
+| 6     | Optimizer                         | Upcoming    |
+| 7     | Robustness Validation             | Upcoming    |
+| 8     | NT8 Strategy Export               | Upcoming    |
+| 9     | 3D Strategy Simulation Cube       | Upcoming    |
+
+### Phase 3 — Synthetic Umar Demo Simulator
+
+Phase 3 proves the TOWER workflow end-to-end before real MBO data arrives.
+
+The `engine/src/tower_umar_engine/synthetic/` module builds six deterministic NQ scenarios
+modelled after Umar/Level-2 order-flow logic:
+
+- **Scenario engine** (`umar_demo_engine.py`): detects bid/ask wall liquidity, tracks
+  aggression from synthetic trade flow, and transitions through WAIT → WATCH_BUY/WATCH_SELL
+  → signal states (BUY/SELL REVERSAL or CONTINUATION).
+- **Six scenarios** (`scenarios.py`): each scenario is a 5–8 step deterministic sequence with
+  hand-crafted NQ-like prices, order book snapshots, and trade flow data.
+- **CLI** (`run_synthetic_umar_demo.py`): run any or all scenarios from the terminal.
+- **API** (`/api/synthetic-umar/run`): bridges the Python engine to the Next.js dashboard.
+- **Demo Lab UI**: select a scenario, click Run, see the state timeline, mini chart, and trade plan.
+
+**Important:** Synthetic scenarios do NOT prove profitability. They prove the architecture works.
+Real validation begins after Databento MBO data is connected in Phase 4.
 
 Full details: [`docs/roadmap.md`](docs/roadmap.md)
 

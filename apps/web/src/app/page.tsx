@@ -6,6 +6,7 @@ import UploadSection from "@/components/UploadSection";
 import ChartWorkspace from "@/components/ChartWorkspace";
 import PipelineBar from "@/components/PipelineBar";
 import LocalSetupCard from "@/components/LocalSetupCard";
+import SyntheticDemoLab from "@/components/SyntheticDemoLab";
 
 export default function Home() {
   return (
@@ -131,6 +132,22 @@ export default function Home() {
               status="coming-soon"
               detail="Parameter sweep + Monte Carlo robustness"
             />
+          </div>
+        </section>
+
+        {/* ── Synthetic Umar Demo Lab ───────────────────────────── */}
+        <section>
+          <div className="flex items-center gap-4 mb-2">
+            <h2 className="card-title">Synthetic Umar Demo Lab</h2>
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="section-label">Phase 3</span>
+          </div>
+          <p className="text-sm text-gray-500 mb-5 max-w-2xl">
+            Run controlled order-flow scenarios to preview how the Umar logic responds before real
+            MBO data is connected. Six deterministic scenarios — each proves one engine state.
+          </p>
+          <div className="card p-6">
+            <SyntheticDemoLab />
           </div>
         </section>
 

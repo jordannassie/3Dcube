@@ -10,9 +10,9 @@ export default function LocalSetupCard() {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Run Locally to Enable File Uploads</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Run Locally to Enable File Selection</h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              TOWER stores .cs files on your local SSD. The Netlify preview is UI-only.
+              TOWER reads .cs files from your local Test folder. The Netlify preview is UI-only.
             </p>
           </div>
         </div>
@@ -45,12 +45,12 @@ export default function LocalSetupCard() {
             </code>
           </Step>
 
-          <Step n={5} label="Open localhost and upload">
+          <Step n={5} label="Select a file from the Test Library">
             <code className="block text-xs font-mono bg-gray-50 border border-gray-200 rounded px-3 py-2 mt-1.5 text-gray-700">
               http://localhost:3000
             </code>
             <p className="text-xs text-gray-400 mt-1">
-              Drag and drop your NinjaTrader 8 .cs indicator or strategy file to begin analysis.
+              Use the Test Library dropdown to choose any .cs file — TOWER analyzes it immediately.
             </p>
           </Step>
         </ol>

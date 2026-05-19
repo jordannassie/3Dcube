@@ -2,29 +2,42 @@
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --bg:            #F5F7FA;
+  --bg:            #F4F6F9;
   --surface:       #FFFFFF;
   --surface-alt:   #F8FAFC;
-  --border:        #E5E7EB;
-  --border-strong: #D1D5DB;
-  --text:          #111827;
-  --text-secondary:#6B7280;
-  --text-muted:    #9CA3AF;
+  --surface-raised:#FFFFFF;
+  --border:        #E8ECF0;
+  --border-strong: #CDD2D8;
+  --text:          #0F172A;
+  --text-secondary:#475569;
+  --text-muted:    #94A3B8;
   --accent:        #2563EB;
+  --accent-hover:  #1D4ED8;
   --accent-light:  #3B82F6;
-  --accent-soft:   #DBEAFE;
+  --accent-soft:   #EFF6FF;
+  --accent-border: #BFDBFE;
   --success:       #16A34A;
-  --success-soft:  #DCFCE7;
+  --success-soft:  #F0FDF4;
+  --success-border:#BBF7D0;
   --danger:        #DC2626;
-  --danger-soft:   #FEE2E2;
+  --danger-soft:   #FEF2F2;
+  --danger-border: #FECACA;
   --warning:       #D97706;
-  --warning-soft:  #FEF3C7;
+  --warning-soft:  #FFFBEB;
+  --warning-border:#FDE68A;
 
-  /* shadows */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
-  --shadow:    0 4px 6px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 10px 15px rgba(0,0,0,0.07), 0 4px 6px rgba(0,0,0,0.05);
+  /* Elevation shadows — Coinbase-style very subtle */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow:    0 4px 8px rgba(15,23,42,0.06), 0 2px 4px rgba(15,23,42,0.04);
+  --shadow-md: 0 8px 24px rgba(15,23,42,0.08), 0 2px 6px rgba(15,23,42,0.04);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,0.10), 0 4px 8px rgba(15,23,42,0.05);
+
+  /* Radius scale */
+  --radius-sm: 8px;
+  --radius:    12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 }
 
 /* ── Reset / base ──────────────────────────────────────────────────────────── */
@@ -33,64 +46,155 @@
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", "SF Pro Text", ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 15px;
   line-height: 1.6;
 }
 
-/* ── Utility classes ────────────────────────────────────────────────────────── */
+/* ── Card components ────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+}
+
+.card-sm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
 }
 
 .card-flat {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .surface-alt {
   background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
+/* ── Typography utilities ───────────────────────────────────────────────────── */
 .section-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-/* Status badges */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* ── Badge system ───────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 9999px;
   border: 1px solid;
+  white-space: nowrap;
 }
 
-.badge-ready   { color: var(--success); border-color: rgba(22,163,74,0.25); background: var(--success-soft); }
-.badge-pending { color: var(--warning); border-color: rgba(217,119,6,0.25);  background: var(--warning-soft); }
-.badge-offline { color: var(--text-muted); border-color: var(--border); background: var(--surface-alt); }
-.badge-soon    { color: var(--accent);  border-color: rgba(37,99,235,0.2);  background: var(--accent-soft); }
+.badge-ready     { color: #15803D; border-color: var(--success-border);  background: var(--success-soft); }
+.badge-pending   { color: #92400E; border-color: var(--warning-border);  background: var(--warning-soft); }
+.badge-offline   { color: var(--text-muted); border-color: var(--border); background: var(--surface-alt); }
+.badge-soon      { color: #1D4ED8; border-color: var(--accent-border);   background: var(--accent-soft); }
+.badge-indicator { color: #6D28D9; border-color: #DDD6FE; background: #F5F3FF; }
+.badge-strategy  { color: #065F46; border-color: var(--success-border);  background: var(--success-soft); }
+.badge-amber     { color: #92400E; border-color: var(--warning-border);  background: var(--warning-soft); }
 
-/* Status dot */
+/* ── Status dot ─────────────────────────────────────────────────────────────── */
 .status-dot {
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-block;
 }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+.dot-pulse { animation: pulse-dot 2.4s ease-in-out infinite; }
+
+/* ── Divider ────────────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  width: 100%;
+}
+
+/* ── Button base ────────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-secondary:hover { background: #DBEAFE; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { background: var(--surface-alt); color: var(--text); border-color: var(--border-strong); }
 
 /* ── 3D Cube (professional palette) ────────────────────────────────────────── */
 .cube-scene {
@@ -111,23 +215,23 @@ html, body {
   position: absolute;
   width: 160px;
   height: 160px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  background: rgba(37, 99, 235, 0.03);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  background: rgba(37, 99, 235, 0.02);
 }
 
 .face-front  { transform: translateZ(80px); }
 .face-back   { transform: rotateY(180deg) translateZ(80px); }
 .face-left   { transform: rotateY(-90deg) translateZ(80px); }
 .face-right  { transform: rotateY(90deg)  translateZ(80px); }
-.face-top    { transform: rotateX(90deg)  translateZ(80px); border-color: rgba(17,24,39,0.08); }
+.face-top    { transform: rotateX(90deg)  translateZ(80px); border-color: rgba(15,23,42,0.07); }
 .face-bottom {
   transform: rotateX(-90deg) translateZ(80px);
-  border-color: rgba(17,24,39,0.08);
+  border-color: rgba(15,23,42,0.07);
   background: repeating-linear-gradient(
-    0deg,   rgba(37,99,235,0.06) 0, rgba(37,99,235,0.06) 1px, transparent 1px, transparent 20px
+    0deg,   rgba(37,99,235,0.05) 0, rgba(37,99,235,0.05) 1px, transparent 1px, transparent 20px
   ),
   repeating-linear-gradient(
-    90deg,  rgba(37,99,235,0.06) 0, rgba(37,99,235,0.06) 1px, transparent 1px, transparent 20px
+    90deg,  rgba(37,99,235,0.05) 0, rgba(37,99,235,0.05) 1px, transparent 1px, transparent 20px
   );
 }
 
@@ -143,10 +247,3 @@ html, body {
   0%   { transform: rotateX(-18deg) rotateY(0deg); }
   100% { transform: rotateX(-18deg) rotateY(360deg); }
 }
-
-/* Status dot pulse */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.35; }
-}
-.dot-pulse { animation: pulse-dot 2.4s ease-in-out infinite; }

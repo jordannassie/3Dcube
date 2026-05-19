@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep: #020818;
+  --bg-surface: rgba(255, 255, 255, 0.03);
+  --border-subtle: rgba(59, 130, 246, 0.15);
+  --border-glow: rgba(6, 182, 212, 0.35);
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-violet: #8b5cf6;
+  --accent-magenta: #ec4899;
+  --text-primary: #f1f5f9;
+  --text-secondary: #64748b;
+  --text-muted: #334155;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: "Inter", "SF Pro Display", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism panel */
+.glass {
+  background: rgba(8, 20, 45, 0.6);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-bright {
+  background: rgba(14, 30, 60, 0.75);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid var(--border-glow);
+}
+
+/* Neon glow utilities */
+.glow-blue  { box-shadow: 0 0 24px rgba(59, 130, 246, 0.2), 0 0 1px rgba(59, 130, 246, 0.6) inset; }
+.glow-cyan  { box-shadow: 0 0 24px rgba(6, 182, 212, 0.2),  0 0 1px rgba(6, 182, 212, 0.6)  inset; }
+.glow-violet{ box-shadow: 0 0 24px rgba(139, 92, 246, 0.2), 0 0 1px rgba(139, 92, 246, 0.6) inset; }
+.glow-mag   { box-shadow: 0 0 24px rgba(236, 72, 153, 0.2), 0 0 1px rgba(236, 72, 153, 0.6) inset; }
+
+/* Ambient background mesh */
+.ambient-mesh {
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 25%, rgba(59, 130, 246, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 70%, rgba(139, 92, 246, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 10%, rgba(6, 182, 212, 0.05)  0%, transparent 55%);
+}
+
+/* ─── 3D Cube Placeholder ─── */
+.cube-scene {
+  perspective: 600px;
+  perspective-origin: 50% 40%;
+}
+
+.cube-wrapper {
+  width: 180px;
+  height: 180px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: rotateCube 14s infinite linear;
+  margin: 0 auto;
+}
+
+.cube-face {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.03);
+  backdrop-filter: blur(2px);
+}
+
+.face-front  { transform: translateZ(90px); }
+.face-back   { transform: rotateY(180deg) translateZ(90px); }
+.face-left   { transform: rotateY(-90deg) translateZ(90px); }
+.face-right  { transform: rotateY(90deg)  translateZ(90px); }
+.face-top    { transform: rotateX(90deg)  translateZ(90px); border-color: rgba(59, 130, 246, 0.3); }
+.face-bottom { transform: rotateX(-90deg) translateZ(90px); border-color: rgba(139, 92, 246, 0.3); }
+
+/* Grid floor inside cube */
+.face-bottom {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(6, 182, 212, 0.08) 0px,
+    rgba(6, 182, 212, 0.08) 1px,
+    transparent 1px,
+    transparent 22px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    rgba(6, 182, 212, 0.08) 0px,
+    rgba(6, 182, 212, 0.08) 1px,
+    transparent 1px,
+    transparent 22px
+  );
+}
+
+/* Floating bars inside cube */
+.cube-bar {
+  position: absolute;
+  bottom: 0;
+  width: 18px;
+  border-radius: 2px 2px 0 0;
+  transform-style: preserve-3d;
+}
+
+@keyframes rotateCube {
+  0%   { transform: rotateX(-18deg) rotateY(0deg); }
+  100% { transform: rotateX(-18deg) rotateY(360deg); }
+}
+
+/* Subtle grid overlay on page */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Scanline shimmer */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.scanline::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.06), transparent);
+  animation: scanline 8s linear infinite;
+}
+
+/* Status dot pulse */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.dot-pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}

@@ -1,0 +1,6 @@
+# TOWER Umar Engine — Python dependencies
+# Phase 1: foundation only — minimal dependencies.
+# Future phases will add: databento, pandas, numpy, scipy, etc.
+
+# No third-party packages required for Phase 1.
+# All code uses the Python standard library.

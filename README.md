@@ -85,6 +85,24 @@ tower-umar-strategy-lab/
 
 ---
 
+## Netlify Deployment — UI Preview Only
+
+The live Netlify site at [3dcube.netlify.app](https://3dcube.netlify.app) is a
+**visual / UI preview only**.
+
+- File uploads are **disabled on the hosted preview** — the upload zone shows a
+  clear "Local only" state and does not attempt to write to any filesystem.
+- Real `.cs` file uploads require running TOWER locally so files can be saved to
+  your SSD via `TOWER_UPLOADED_INDICATORS_DIR`.
+- No `.cs` files, backtest data, or trading data are ever sent to Netlify or any
+  cloud service. The platform is intentionally **local-first**.
+
+The Netlify deploy is triggered automatically on every push to `main` via
+`netlify.toml` (base: `apps/web`). The build sets
+`NEXT_PUBLIC_RUNTIME_ENV=preview` so the hosted UI correctly identifies itself.
+
+---
+
 ## Running the Dashboard Locally
 
 ```bash
@@ -114,12 +132,16 @@ npm install && npm run dev
 
 Copy `.env.example` to `apps/web/.env.local`:
 
-| Variable                          | Required    | Description                                           |
-|-----------------------------------|-------------|-------------------------------------------------------|
-| `TOWER_UPLOADED_INDICATORS_DIR`   | Phase 2+    | Local folder for uploaded .cs files (auto-created)    |
-| `TOWER_MBO_DATA_DIR`              | Phase 4+    | Local SSD folder containing .dbn MBO files            |
-| `DATABENTO_API_KEY`               | Optional    | For live Databento catalog queries                    |
-| `TOWER_PYTHON_BIN`                | Optional    | Python binary path (default: `python3`)               |
+| Variable                          | Required    | Description                                                    |
+|-----------------------------------|-------------|----------------------------------------------------------------|
+| `TOWER_UPLOADED_INDICATORS_DIR`   | Phase 2+    | **Local** folder for uploaded .cs files (required for uploads) |
+| `TOWER_MBO_DATA_DIR`              | Phase 4+    | Local SSD folder containing .dbn MBO files                     |
+| `DATABENTO_API_KEY`               | Optional    | For live Databento catalog queries                             |
+| `TOWER_PYTHON_BIN`                | Optional    | Python binary path (default: `python3`)                        |
+
+> `NEXT_PUBLIC_RUNTIME_ENV` is set automatically to `preview` by `netlify.toml`
+> during Netlify builds. Do **not** set this in `.env.local` — leave it unset
+> locally so the app correctly identifies itself as running in local mode.
 
 ---
 

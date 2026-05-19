@@ -5,6 +5,7 @@ import RoadmapSection from "@/components/RoadmapSection";
 import UploadSection from "@/components/UploadSection";
 import ChartWorkspace from "@/components/ChartWorkspace";
 import PipelineBar from "@/components/PipelineBar";
+import LocalSetupCard from "@/components/LocalSetupCard";
 
 export default function Home() {
   return (
@@ -184,6 +185,16 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* ── Local Setup Guide ── */}
+        <section>
+          <div className="flex items-center gap-4 mb-4">
+            <h2 className="text-base font-bold text-gray-900">Local Setup</h2>
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="section-label">Required for uploads</span>
+          </div>
+          <LocalSetupCard />
         </section>
 
         {/* ── Roadmap ── */}

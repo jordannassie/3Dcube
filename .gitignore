@@ -40,3 +40,6 @@ yarn-error.log*
 *.dbn
 *.dbn.zst
 *.mbo
+
+# Test folder — keep the folder itself but ignore actual .cs strategy files
+Test/*.cs

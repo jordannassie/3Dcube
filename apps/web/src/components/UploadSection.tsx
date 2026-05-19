@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import UploadZone from "@/components/UploadZone";
 import AnalysisReport from "@/components/AnalysisReport";
+import FileSelector from "@/components/FileSelector";
 import type { AnalysisResult, UploadResponse } from "@/lib/types";
 import { IS_HOSTED_PREVIEW } from "@/lib/env";
 
@@ -13,7 +14,6 @@ function scrollToLocalSetup() {
 function HostedInfoPanel() {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-      {/* Header */}
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0">
           <svg className="w-4.5 h-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -30,7 +30,6 @@ function HostedInfoPanel() {
         </div>
       </div>
 
-      {/* Checklist */}
       <ol className="space-y-2">
         {[
           "Open the repo locally",
@@ -47,7 +46,6 @@ function HostedInfoPanel() {
         ))}
       </ol>
 
-      {/* CTA */}
       <button
         onClick={scrollToLocalSetup}
         className="w-full text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-lg py-2.5 transition-colors"
@@ -66,7 +64,6 @@ export default function UploadSection() {
   const [analyzerError, setAnalyzerError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Skip the indicators API call on hosted preview — no local directory exists
     if (IS_HOSTED_PREVIEW) return;
     fetch("/api/indicators")
       .then(r => r.json())
@@ -86,8 +83,8 @@ export default function UploadSection() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* ── Hosted preview: replace upload zone with info panel ── */}
+    <div className="space-y-5">
+      {/* ── Hosted preview ── */}
       {IS_HOSTED_PREVIEW ? (
         <>
           <HostedInfoPanel />
@@ -113,18 +110,52 @@ export default function UploadSection() {
           {fileCount !== null && fileCount > 0 && (
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span className="status-dot bg-blue-400 dot-pulse" />
-              {fileCount} file{fileCount === 1 ? "" : "s"} stored
+              {fileCount} file{fileCount === 1 ? "" : "s"} in Test folder
             </div>
           )}
 
-          {/* Upload zone */}
+          {/* ── Test Library selector ── */}
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-700">Test Library</span>
+              <span className="ml-auto text-[10px] text-gray-400 font-mono">Test/</span>
+            </div>
+            <FileSelector />
+          </div>
+
+          {/* ── Divider ── */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">or upload new file</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          {/* ── Upload zone ── */}
           <UploadZone onUploadComplete={handleUploadComplete} />
+
+          {/* Analysis result from upload */}
+          {analysis && (
+            <div className="mt-1">
+              <AnalysisReport result={analysis} originalFilename={uploadedFilename} />
+            </div>
+          )}
+
+          {/* Analyzer error from upload */}
+          {analyzerError && !analysis && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="text-xs font-semibold text-red-700 mb-1">Analyzer error</p>
+              <p className="text-xs text-gray-500 font-mono break-all">{analyzerError}</p>
+            </div>
+          )}
         </>
       )}
 
       {/* Product flow helper */}
       <div className="surface-alt p-4">
-        <p className="text-xs font-semibold text-gray-600 mb-2">After upload, TOWER will:</p>
+        <p className="text-xs font-semibold text-gray-600 mb-2">After selecting a file, TOWER will:</p>
         <ol className="space-y-1">
           {[
             "Analyze file type and all input parameters",
@@ -140,21 +171,6 @@ export default function UploadSection() {
           ))}
         </ol>
       </div>
-
-      {/* Analysis result */}
-      {analysis && (
-        <div className="mt-2">
-          <AnalysisReport result={analysis} originalFilename={uploadedFilename} />
-        </div>
-      )}
-
-      {/* Analyzer error (Python not available etc.) */}
-      {analyzerError && !analysis && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-xs font-semibold text-red-700 mb-1">Analyzer error</p>
-          <p className="text-xs text-gray-500 font-mono break-all">{analyzerError}</p>
-        </div>
-      )}
     </div>
   );
 }

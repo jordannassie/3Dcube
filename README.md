@@ -3,23 +3,25 @@
 > **Private local research platform** for backtesting and optimizing the
 > Umar / Level 2 order-flow strategy on NQ MBO futures data.
 
-**Current status: Phase 1 — Foundation complete.**  
-No real MBO data processing or strategy logic yet. The Next.js dashboard
-and Python engine scaffold are running.
+**Current status: Phase 2 complete — NT8 file upload and analyzer live.**
 
 ---
 
-## What This Is
+## What This Does
 
-TOWER Umar Strategy Lab is a fully local, offline-capable research tool built for:
+TOWER accepts NinjaTrader 8 `.cs` files — both **Indicators** and **Strategies** —
+analyzes their structure, and will eventually backtest them on real NQ MBO data,
+optimize their parameters, and export a hardened `.cs` file back to NT8.
 
-- Replaying Databento NQ MBO historical order-book data from a local SSD
-- Implementing the exact Umar / Level 2 order-flow strategy rules
-- Running backtest simulations with realistic fill modelling
-- Sweeping parameters + running Monte Carlo validation
-- Visualizing optimization results in an interactive 3D Strategy Simulation Cube
+**The full pipeline (when complete):**
 
-All data and computation stays on your machine.
+```
+Upload NT8 .cs  →  Analyze  →  Build Strategy Definition
+  →  Load MBO Data  →  Backtest  →  Optimize
+  →  Robustness Tests  →  Export optimized .cs  →  Run live in NT8
+```
+
+All data and computation runs locally. Nothing leaves your machine.
 
 ---
 
@@ -27,36 +29,50 @@ All data and computation stays on your machine.
 
 ```
 tower-umar-strategy-lab/
-├── README.md
+├── .env.example             ← copy to apps/web/.env.local
 ├── .gitignore
-├── .env.example          ← copy to .env, set your paths
-├── package.json          ← npm workspaces root
+├── README.md
+├── netlify.toml
+├── package.json             ← npm workspaces root
 │
-├── apps/
-│   └── web/              ← Next.js 16 local dashboard
-│       ├── src/
-│       │   ├── app/      ← App Router pages & layout
-│       │   └── components/
-│       ├── package.json
-│       ├── next.config.ts
-│       └── tsconfig.json
-│
-├── engine/               ← Python backtesting engine
+├── apps/web/                ← Next.js 16 local dashboard
 │   ├── src/
-│   │   └── tower_umar_engine/
-│   │       ├── __init__.py
-│   │       ├── config.py
-│   │       └── health.py
+│   │   ├── app/
+│   │   │   ├── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── globals.css
+│   │   │   └── api/
+│   │   │       ├── upload/route.ts      ← POST: save + analyze .cs file
+│   │   │       └── indicators/route.ts  ← GET: file count + list
+│   │   ├── components/
+│   │   │   ├── TopNav.tsx
+│   │   │   ├── StatusCard.tsx
+│   │   │   ├── UploadSection.tsx     ← client: manages upload state
+│   │   │   ├── UploadZone.tsx        ← drag-and-drop upload UI
+│   │   │   ├── AnalysisReport.tsx    ← displays analysis results
+│   │   │   ├── CubePlaceholder.tsx
+│   │   │   └── RoadmapSection.tsx
+│   │   └── lib/
+│   │       └── types.ts              ← shared TypeScript interfaces
+│   └── package.json
+│
+├── engine/                  ← Python backtesting engine
+│   ├── src/tower_umar_engine/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── health.py
+│   │   └── nt8_file_analyzer.py     ← NT8 .cs structural analyzer
 │   ├── scripts/
-│   │   └── run_health_check.py
+│   │   ├── run_health_check.py
+│   │   └── analyze_nt8_file.py      ← CLI for the analyzer
 │   ├── requirements.txt
-│   ├── pyproject.toml
-│   └── README.md
+│   └── pyproject.toml
 │
 └── docs/
     ├── architecture.md
     ├── product-vision.md
-    └── roadmap.md
+    ├── roadmap.md
+    └── nt8-parser-spec.md
 ```
 
 ---
@@ -64,102 +80,86 @@ tower-umar-strategy-lab/
 ## Prerequisites
 
 - Node.js ≥ 20
-- Python ≥ 3.11
+- Python ≥ 3.9
 - npm ≥ 10
 
 ---
 
-## Running the Next.js Dashboard Locally
+## Running the Dashboard Locally
 
 ```bash
-# 1. Install dependencies
-cd apps/web
-npm install
+# 1. Set up your local environment
+cp .env.example apps/web/.env.local
+# Edit apps/web/.env.local — set at minimum:
+#   TOWER_UPLOADED_INDICATORS_DIR=/path/to/your/upload/folder
 
-# 2. Start the dev server
+# 2. Install dependencies
+cd apps/web && npm install
+
+# 3. Start the dev server
 npm run dev
 
-# 3. Open in browser
+# 4. Open in browser
 # → http://localhost:3000
 ```
 
 Or from the repo root using npm workspaces:
-
 ```bash
-npm install
-npm run dev
-```
-
----
-
-## Running the Python Health Check
-
-No installation needed for Phase 1:
-
-```bash
-# From the repo root
-python engine/scripts/run_health_check.py
-```
-
-Expected output:
-
-```
-  TOWER Umar Engine — Health Check
-  ────────────────────────────────────────
-
-  Engine
-  ✓  TOWER Umar Engine: OK  (v0.1.0)
-
-  MBO Data Directory (TOWER_MBO_DATA_DIR)
-  ⚠  Not configured — set TOWER_MBO_DATA_DIR in .env
-
-  Databento API Key (optional)
-  ⚠  Not set — only needed for live catalog queries (Phase 2+)
-```
-
-To configure the MBO data directory:
-
-```bash
-cp .env.example .env
-# Edit .env:
-#   TOWER_MBO_DATA_DIR=/Volumes/YourSSD/nq-mbo-data
+npm install && npm run dev
 ```
 
 ---
 
 ## Environment Variables
 
-See `.env.example` for all variables:
+Copy `.env.example` to `apps/web/.env.local`:
 
-| Variable              | Description                                       |
-|-----------------------|---------------------------------------------------|
-| `TOWER_MBO_DATA_DIR`  | Absolute path to local SSD folder with .dbn files |
-| `DATABENTO_API_KEY`   | Optional — for live Databento catalog queries     |
+| Variable                          | Required    | Description                                           |
+|-----------------------------------|-------------|-------------------------------------------------------|
+| `TOWER_UPLOADED_INDICATORS_DIR`   | Phase 2+    | Local folder for uploaded .cs files (auto-created)    |
+| `TOWER_MBO_DATA_DIR`              | Phase 4+    | Local SSD folder containing .dbn MBO files            |
+| `DATABENTO_API_KEY`               | Optional    | For live Databento catalog queries                    |
+| `TOWER_PYTHON_BIN`                | Optional    | Python binary path (default: `python3`)               |
+
+---
+
+## Running the Python Health Check
+
+```bash
+python3 engine/scripts/run_health_check.py
+```
+
+---
+
+## Analyzing an NT8 .cs File (CLI)
+
+```bash
+# Formatted summary
+python3 engine/scripts/analyze_nt8_file.py --file /path/to/TOWERUmar2_BALANCED_SELECTIVE_UPDATE.cs
+
+# JSON output only
+python3 engine/scripts/analyze_nt8_file.py --file /path/to/TOWERUmar2_BALANCED_SELECTIVE_UPDATE.cs --json
+```
 
 ---
 
 ## Build Roadmap
 
-| Phase | Name                        | Status      |
-|-------|-----------------------------|-------------|
-| 1     | Engine Foundation           | ✅ Complete |
-| 2     | Databento MBO Loader        | Upcoming    |
-| 3     | Exact Umar Strategy Port    | Upcoming    |
-| 4     | Backtest Simulator          | Upcoming    |
-| 5     | Optimizer + Monte Carlo     | Upcoming    |
-| 6     | Strategy Cube Replay UI     | Upcoming    |
+| Phase | Name                           | Status      |
+|-------|--------------------------------|-------------|
+| 1     | Engine Foundation              | ✅ Done     |
+| 2     | .cs Upload + NT8 File Analyzer | ✅ Done     |
+| 3     | Strategy Definition Builder    | Next        |
+| 4     | Databento MBO Loader           | Upcoming    |
+| 5     | Exact Umar Backtest Engine     | Upcoming    |
+| 6     | Optimizer                      | Upcoming    |
+| 7     | Robustness Validation          | Upcoming    |
+| 8     | NT8 Strategy Export            | Upcoming    |
+| 9     | 3D Strategy Cube Replay UI     | Upcoming    |
 
-Full details in [`docs/roadmap.md`](docs/roadmap.md).
-
----
-
-## Docs
-
-- [`docs/architecture.md`](docs/architecture.md) — system design and data flow
-- [`docs/product-vision.md`](docs/product-vision.md) — the 3D Strategy Cube vision
-- [`docs/roadmap.md`](docs/roadmap.md) — step-by-step build plan
+Full details: [`docs/roadmap.md`](docs/roadmap.md)
 
 ---
 
-> ⚠️ **Private research tool only.** Not for production trading. Not a licensed
+> ⚠️ Private research tool only. Not for production trading. Not a licensed
 > financial product. All backtest results are hypothetical.

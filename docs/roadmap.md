@@ -1,222 +1,151 @@
 # Build Roadmap — TOWER Umar Strategy Lab
 
-## The 8-Step Workflow This Roadmap Delivers
+## The End-to-End Workflow This Roadmap Delivers
 
 ```
-1. Upload NT8 .cs strategy file
-2. Engine reads the logic and parameters
-3. Recreates that logic inside the MBO backtester
-4. Tests it across historical NQ MBO data
-5. Finds the strongest settings and strongest strategy version
-6. Runs robustness tests: walk-forward · sensitivity · Monte Carlo · slippage stress
-7. Exports a final optimized NinjaTrader 8 .cs strategy file
-8. Copy/paste into NT8 Strategy Editor → run live
+1. Upload NT8 .cs Indicator or Strategy file
+2. Engine analyzes what it contains (parameters, methods, capabilities)
+3. Strategy Definition Builder converts indicator signals into a testable strategy
+4. Databento MBO Loader reads local SSD data
+5. Exact Umar Backtest Engine replays the strategy on real order-book data
+6. Optimizer sweeps parameter space to find the strongest settings
+7. Robustness Validation: walk-forward, Monte Carlo, sensitivity, slippage stress
+8. NT8 Strategy Exporter outputs an optimized .cs file ready for NinjaTrader
+9. 3D Strategy Cube Replay UI — visualize the entire optimization sweep in 3D
 ```
+
+**Important:** TOWER supports both NT8 Indicators and Strategies.
+Most Umar files are Indicators. The system analyzes them first, then
+builds a backtestable strategy definition from their signals (Phase 3).
+TOWER does not claim to auto-translate arbitrary C# perfectly —
+it works precisely for TOWER-authored and well-structured NT8 files.
 
 ---
 
 ## Phase 1 — Engine Foundation ✅ COMPLETE
 
-**Goal**: Stand up the project structure and confirm the system can boot.
+**Goal**: Stand up the project structure.
+
+- [x] Monorepo scaffold (`apps/web/`, `engine/`, `docs/`)
+- [x] Next.js 16 App Router dashboard (TypeScript, Tailwind v4)
+- [x] Python engine package with health check
+- [x] Docs: architecture, product vision, roadmap, NT8 parser spec
+
+---
+
+## Phase 2 — .cs Upload + NT8 File Analyzer ✅ COMPLETE
+
+**Goal**: User uploads any NT8 .cs file and gets a full structural analysis.
+
+- [x] `TOWER_UPLOADED_INDICATORS_DIR` env var — local file storage
+- [x] Next.js POST `/api/upload` — validates, saves, calls Python analyzer
+- [x] Next.js GET `/api/indicators` — file count + directory listing
+- [x] `nt8_file_analyzer.py` — detects class type, parameters, methods, capabilities
+- [x] `analyze_nt8_file.py` — CLI with formatted output + `--json` mode
+- [x] `UploadZone` — drag-and-drop upload with states (idle/uploading/success/error)
+- [x] `AnalysisReport` — premium glass card showing full structural analysis
+- [x] Dashboard integrated: upload section with live file count
+- [x] Warning state if `TOWER_UPLOADED_INDICATORS_DIR` is not configured
+
+---
+
+## Phase 3 — Strategy Definition Builder  ← NEXT
+
+**Goal**: Convert analyzed Indicator signals into a backtestable strategy definition.
+
+This is NOT full C# transpilation. It is a structured mapping:
+- Extract the indicator's signal logic as documented in the analysis
+- Define entry/exit rules in terms of those signals
+- Produce a Python `StrategyDefinition` that the backtest engine can run
 
 Deliverables:
-- [x] Monorepo scaffold (`apps/web/`, `engine/`, `docs/`)
-- [x] Next.js 16 App Router dashboard (local, TypeScript, Tailwind v4)
-- [x] Premium dark dashboard with 3D cube placeholder
-- [x] Python engine package (`tower_umar_engine`)
-- [x] `config.py` — reads `TOWER_MBO_DATA_DIR`, `DATABENTO_API_KEY` from `.env`
-- [x] `health.py` — prints system status report
-- [x] `run_health_check.py` script
-- [x] Docs: architecture, product vision, roadmap
+- [ ] `strategy_builder.py` — takes `AnalysisResult` + user-defined rules → `StrategyDefinition`
+- [ ] Dashboard: "Strategy Definition" form — configure entry/exit from indicator signals
+- [ ] CLI: `python engine/scripts/build_strategy.py --analysis result.json`
+- [ ] Output: `strategy_definition.json` — portable spec for the simulator
 
 ---
 
-## Phase 2 — NT8 Strategy Importer  ← NEXT
+## Phase 4 — Databento MBO Loader
 
-**Delivers Step 1 + Step 2 of the workflow.**
+**Goal**: Read real NQ MBO files from the local SSD.
 
-**Goal**: User uploads any NinjaTrader 8 `.cs` strategy file and the engine
-reads its parameters and logic structure — no manual coding required.
-
-### Engine (`nt8_parser.py`):
-- [ ] Regex-based parser for NinjaScript C# files
-- [ ] Extract all parameter declarations:
-  - `[Range(min, max)]` attributes
-  - Property names, types, default values
-  - `Parameters.Add()` style (legacy NT8)
-- [ ] Extract entry/exit call sites:
-  - `EnterLong()`, `EnterShort()`, `ExitLong()`, `ExitShort()`
-  - `SetStopLoss()`, `SetProfitTarget()`, `SetTrailingStop()`
-- [ ] Detect indicator references: `EMA`, `RSI`, `SMA`, `ATR`, `MACD`, `VOL`
-- [ ] Extract `OnBarUpdate()` condition blocks (if/else tree)
-- [ ] Output: `StrategySpec` dataclass → serializable to JSON
-- [ ] CLI: `python engine/scripts/parse_nt8.py --file path/to/strategy.cs`
-
-### Dashboard (`app/upload/`):
-- [ ] Drag-and-drop file upload area (accepts `.cs` only)
-- [ ] Calls engine parser → displays results:
-  - Strategy name and detected NT8 version
-  - Table of all extracted parameters with type/default/range
-  - Entry conditions summary (human-readable)
-  - Indicator list
-- [ ] "Proceed to Backtest" button → passes `StrategySpec` to next phase
-
----
-
-## Phase 3 — Databento MBO Loader
-
-**Delivers Step 3 (data side).**
-
-**Goal**: Read real NQ MBO files from the local SSD into engine-ready structures.
-
-### Engine (`loader.py`):
 - [ ] `pip install databento`
-- [ ] Open `.dbn` / `.dbn.zst` files via Databento SDK
-- [ ] Normalize raw MBO events into typed dataclasses:
-  - `OrderBookUpdate(ts, side, price, size, action)`
-  - `L2Snapshot(ts, bids[], asks[])`
-- [ ] Session-level iterator: yields snapshots in chronological order
-- [ ] Stats on load: total events, date range, symbol, session count
-- [ ] CLI: `python engine/scripts/load_mbo.py --dir $TOWER_MBO_DATA_DIR`
-
-### Dashboard:
-- [ ] Status card: "MBO Dataset: Loaded — N sessions, M events"
-- [ ] Session browser: list available data files
+- [ ] `loader.py` — open `.dbn`/`.dbn.zst`, normalize to `L2Snapshot` stream
+- [ ] Session stats: events, date range, symbol
+- [ ] Dashboard card: "MBO Dataset: Loaded — N sessions, M events"
 
 ---
 
-## Phase 4 — Logic Translator (NinjaScript → Python)
+## Phase 5 — Exact Umar Backtest Engine
 
-**Delivers Step 3 (logic side).**
+**Goal**: Replay the strategy definition against MBO data.
 
-**Goal**: Auto-convert the parsed NT8 strategy spec into a runnable Python
-strategy class. This is the bridge between Steps 2 and 4 of the workflow.
-
-### Engine (`translator.py`):
-- [ ] `BaseStrategy` ABC with `on_snapshot(snapshot) → Signal | None`
-- [ ] `translate(spec: StrategySpec) → BaseStrategy subclass`
-- [ ] Indicator mapping: NT8 calls → `pandas_ta` equivalents
-- [ ] Condition mapping: NT8 comparisons → Python boolean logic
-- [ ] Entry/exit mapping: NT8 calls → `Signal(direction, stop, target, trail)`
-- [ ] Handles: `CrossAbove`, `CrossBelow`, `Rising`, `Falling` NT8 helpers
-- [ ] Output: a Python file that can be inspected, edited, and re-run
-
-### Dashboard:
-- [ ] Show translated strategy code (syntax-highlighted)
-- [ ] Highlight any conditions that required manual review / approximation
+- [ ] `simulator.py` — event-driven replay
+- [ ] Realistic fill model: bid/ask spread, slippage, commissions
+- [ ] Output: `TradeLog[]`, `EquityCurve`, `BacktestReport`
+- [ ] Dashboard: equity curve + trade table
 
 ---
 
-## Phase 5 — Backtest Simulator
+## Phase 6 — Optimizer
 
-**Delivers Step 4 of the workflow.**
+**Goal**: Find the strongest parameter settings.
 
-**Goal**: Replay signals from the translated strategy against MBO data with
-realistic execution modelling.
-
-### Engine (`simulator.py`):
-- [ ] Event-driven replay engine
-- [ ] Feed `L2Snapshot` stream into strategy → collect `Signal[]`
-- [ ] Fill model: bid/ask spread, slippage (configurable ticks), partial fills
-- [ ] Commission model: NQ futures per-side ($2.09 NinjaTrader default)
-- [ ] Position management: one contract at a time (Phase 5), multi-lot later
-- [ ] Output: `TradeLog[]`, `EquityCurve`, `BacktestReport` (JSON + Parquet)
-- [ ] CLI: `python engine/scripts/run_backtest.py --config backtest.toml`
-
-### Dashboard (`app/backtest/`):
-- [ ] Equity curve chart (Chart.js or Recharts)
-- [ ] Trade log table (entry/exit time, price, PnL, hold bars)
-- [ ] Summary stats: total trades, win rate, profit factor, Sharpe, max DD
+- [ ] `optimizer.py` — grid sweep over strategy parameter ranges
+- [ ] Score each run: Sharpe, max DD, win rate, profit factor
+- [ ] Ranked `OptimizationReport` → `results/opt_{date}.parquet`
+- [ ] Dashboard: optimization heat map
 
 ---
 
-## Phase 6 — Optimizer + Robustness Suite
+## Phase 7 — Robustness Validation
 
-**Delivers Step 5 + Step 6 of the workflow.**
+**Goal**: Prove the edge is real, not curve-fit.
 
-**Goal**: Find the strongest parameter set and prove it's a real edge — not curve fitting.
-
-### Engine (`optimizer.py` + `robustness.py`):
-
-**Optimizer:**
-- [ ] Grid search across all parameter ranges from `StrategySpec`
-- [ ] Score each run: Sharpe ratio, max drawdown, win rate, profit factor
-- [ ] Pareto front: identify non-dominated runs (high Sharpe + low DD)
-- [ ] Output: ranked `OptimizationReport` → `results/opt_{date}.parquet`
-
-**Robustness:**
-- [ ] **Walk-Forward**: rolling 70/30 in-sample/out-of-sample splits, 8+ windows
-- [ ] **Monte Carlo**: shuffle entry signal timestamps 1000×, re-run each shuffle,
-      compute p-value (fraction of shuffles that beat real result)
-- [ ] **Parameter Sensitivity**: perturb each best param ±10%, ±20% — measure
-      performance degradation per unit perturbation
-- [ ] **Slippage Stress**: run at 0×, 1×, 2×, 3× assumed slippage —
-      find the slippage level at which the strategy breaks even
-
-### Dashboard (`app/robustness/`):
-- [ ] Optimization heat map (param A vs param B, colored by Sharpe)
-- [ ] Walk-forward equity curve (stacked OOS windows)
-- [ ] Monte Carlo distribution histogram with real result marker
-- [ ] Sensitivity tornado chart
-- [ ] Slippage stress table
+- [ ] `robustness.py`
+- [ ] Walk-forward: rolling 70/30 in/out-of-sample windows (8+ folds)
+- [ ] Monte Carlo: permute entry timestamps 1000×, compute p-value
+- [ ] Parameter sensitivity: perturb each best param ±10%, ±20%
+- [ ] Slippage stress: run at 0×, 1×, 2×, 3× assumed slippage
+- [ ] Dashboard: walk-forward chart, Monte Carlo histogram, sensitivity tornado
 
 ---
 
-## Phase 7 — NT8 Exporter
+## Phase 8 — NT8 Strategy Export
 
-**Delivers Step 7 of the workflow.**
+**Goal**: Output an optimized .cs file ready to compile in NinjaTrader.
 
-**Goal**: Output a valid, optimized NinjaScript `.cs` file ready to compile in NT8.
-
-### Engine (`nt8_exporter.py`):
-- [ ] Jinja2 template for NinjaScript strategy boilerplate
-- [ ] Inject optimized parameter default values
-- [ ] Inject optimization summary comment block at top of file:
-  ```
-  // TOWER Umar Strategy Lab — Optimized Build
-  // Date: 2026-05-18 | Sharpe: 2.41 | Max DD: 4.2%
-  // Win Rate: 58% | Walk-Forward: 7/8 windows passed
-  // Monte Carlo p-value: 0.003 (edge confirmed)
-  ```
-- [ ] Preserve all original strategy logic exactly
-- [ ] Output: `results/UmarStrategy_optimized_{date}.cs`
-- [ ] Validation: check output is syntactically valid NinjaScript (bracket balance, required methods present)
-
-### Dashboard (`app/export/`):
-- [ ] One-click download of optimized `.cs`
-- [ ] Side-by-side diff: original params vs. optimized params
-- [ ] Paste instructions for NT8 Strategy Editor
+- [ ] `nt8_exporter.py` — inject optimized params into NinjaScript template
+- [ ] Audit trail comment block at top of generated file
+- [ ] Dashboard: one-click download + diff vs. original params
+- [ ] Validation: check bracket balance, required methods present
 
 ---
 
-## Phase 8 — 3D Strategy Cube Replay UI
+## Phase 9 — 3D Strategy Cube Replay UI
 
-**Delivers the visual layer across the full workflow.**
+**Goal**: Make the optimization results explorable in 3D.
 
-**Goal**: Make the optimization results explorable in the 3D Strategy Simulation Cube.
-
-### Dashboard:
-- [ ] React Three Fiber / Three.js — replace CSS cube with real 3D WebGL scene
-- [ ] Load optimization report → one 3D bar per parameter set
-  - Bar height = return (%)
-  - Bar color = strategy variant / parameter region
-  - Chart plane at Y = 0
-- [ ] Click any bar → drill into that run's trade log and equity curve
-- [ ] Animate: replay trade sequence chronologically through the cube
-- [ ] Rotate / zoom / pan controls
-- [ ] Export frame as PNG
+- [ ] Replace CSS cube with React Three Fiber / Three.js WebGL scene
+- [ ] One 3D bar per optimization run — height = return %, color = variant
+- [ ] Chart plane at Y = 0
+- [ ] Click bar → drill into trade log + equity curve
+- [ ] Animate: replay trade sequence chronologically
+- [ ] Rotate / zoom / pan / export PNG
 
 ---
 
 ## Summary Table
 
-| Phase | Name                         | Workflow Steps | Status    |
-|-------|------------------------------|----------------|-----------|
-| 1     | Engine Foundation            | —              | ✅ Done   |
-| 2     | NT8 Strategy Importer        | 1, 2           | Next      |
-| 3     | Databento MBO Loader         | 3 (data)       | Upcoming  |
-| 4     | Logic Translator             | 3 (logic)      | Upcoming  |
-| 5     | Backtest Simulator           | 4              | Upcoming  |
-| 6     | Optimizer + Robustness Suite | 5, 6           | Upcoming  |
-| 7     | NT8 Exporter                 | 7              | Upcoming  |
-| 8     | 3D Strategy Cube Replay UI   | Visual layer   | Upcoming  |
+| Phase | Name                           | Status    |
+|-------|--------------------------------|-----------|
+| 1     | Engine Foundation              | ✅ Done   |
+| 2     | .cs Upload + NT8 File Analyzer | ✅ Done   |
+| 3     | Strategy Definition Builder    | Next      |
+| 4     | Databento MBO Loader           | Upcoming  |
+| 5     | Exact Umar Backtest Engine     | Upcoming  |
+| 6     | Optimizer                      | Upcoming  |
+| 7     | Robustness Validation          | Upcoming  |
+| 8     | NT8 Strategy Export            | Upcoming  |
+| 9     | 3D Strategy Cube Replay UI     | Upcoming  |

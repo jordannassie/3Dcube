@@ -3,70 +3,79 @@ const PHASES = [
     phase: "01",
     title: "Engine Foundation",
     description:
-      "Monorepo scaffold, Python health module, Next.js dashboard shell, environment config.",
+      "Monorepo, Python health module, Next.js dashboard shell, environment config.",
     status: "complete",
     accent: "#06b6d4",
     step: null,
   },
   {
     phase: "02",
-    title: "NT8 Strategy Importer",
+    title: ".cs Upload + NT8 File Analyzer",
     description:
-      "Upload any NinjaTrader 8 .cs file. Engine auto-extracts all parameters, entry/exit rules, and indicator refs — no manual coding.",
-    status: "next",
+      "Real file upload. Auto-detect Indicator vs Strategy. Extract parameters, methods, Level 2 logic, and MBO candidacy flags.",
+    status: "complete",
     accent: "#06b6d4",
     step: "Steps 1–2",
   },
   {
     phase: "03",
-    title: "Databento MBO Loader",
+    title: "Strategy Definition Builder",
     description:
-      "Read local .dbn/.dbn.zst files from SSD. Normalize MBO events into L2 order-book snapshots for the backtest engine.",
-    status: "upcoming",
+      "Build a testable backtest strategy definition from analyzed indicator signals. Map NT8 conditions to Python logic.",
+    status: "next",
     accent: "#3b82f6",
-    step: "Step 3a",
+    step: "Step 3",
   },
   {
     phase: "04",
-    title: "Logic Translator",
+    title: "Databento MBO Loader",
     description:
-      "Auto-convert the parsed NT8 strategy into a runnable Python class. Maps NinjaScript conditions and indicators to Python equivalents.",
+      "Read local .dbn/.dbn.zst files. Normalize MBO events into L2 order-book snapshots for the backtest engine.",
     status: "upcoming",
     accent: "#3b82f6",
-    step: "Step 3b",
-  },
-  {
-    phase: "05",
-    title: "Backtest Simulator",
-    description:
-      "Event-driven replay on real MBO data. Realistic fills, slippage, NQ commission model. Outputs trade log and equity curve.",
-    status: "upcoming",
-    accent: "#8b5cf6",
     step: "Step 4",
   },
   {
-    phase: "06",
-    title: "Optimizer + Robustness Suite",
+    phase: "05",
+    title: "Exact Umar Backtest Engine",
     description:
-      "Grid sweep to find strongest settings. Walk-forward, Monte Carlo permutation, parameter sensitivity, and slippage stress tests.",
+      "Event-driven replay on real MBO data. Realistic fills, slippage, NQ commission. Trade log and equity curve output.",
     status: "upcoming",
     accent: "#8b5cf6",
-    step: "Steps 5–6",
+    step: "Step 5",
+  },
+  {
+    phase: "06",
+    title: "Optimizer",
+    description:
+      "Grid sweep across all extracted parameter ranges. Score by Sharpe, max DD, win rate, profit factor. Ranked output.",
+    status: "upcoming",
+    accent: "#8b5cf6",
+    step: "Step 6",
   },
   {
     phase: "07",
-    title: "NT8 Exporter",
+    title: "Robustness Validation",
     description:
-      "Output a valid, optimized NinjaScript .cs file. Inject best parameters + full audit trail comment. Paste into NT8 and run live.",
+      "Walk-forward, Monte Carlo permutation (1000×), parameter sensitivity tornado, slippage stress tests.",
     status: "upcoming",
     accent: "#ec4899",
     step: "Step 7",
   },
   {
     phase: "08",
-    title: "3D Strategy Cube Replay UI",
+    title: "NT8 Strategy Export",
     description:
-      "Three.js interactive cube: one bar per parameter set, height = return %, animated replay, click to drill into any trade log.",
+      "Inject optimized parameters into NinjaScript template. Output a valid, compilable .cs file ready to run in NT8.",
+    status: "upcoming",
+    accent: "#ec4899",
+    step: "Step 8",
+  },
+  {
+    phase: "09",
+    title: "3D Strategy Cube UI",
+    description:
+      "Three.js glass cube: one bar per parameter set, height = return %, animated replay, drill-down to trade log.",
     status: "upcoming",
     accent: "#ec4899",
     step: "Visual layer",
@@ -84,7 +93,7 @@ export default function RoadmapSection() {
         <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-800" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {PHASES.map((p) => (
           <div
             key={p.phase}
@@ -101,7 +110,7 @@ export default function RoadmapSection() {
                   ? "rgba(6,182,212,0.35)"
                   : p.status === "next"
                   ? "rgba(59,130,246,0.4)"
-                  : "rgba(59,130,246,0.1)",
+                  : "rgba(59,130,246,0.08)",
             }}
           >
             <div className="flex items-center justify-between">
@@ -132,7 +141,7 @@ export default function RoadmapSection() {
             </p>
 
             {p.step && (
-              <span className="text-[10px] font-mono text-slate-600 tracking-widest">
+              <span className="text-[10px] font-mono text-slate-700 tracking-widest">
                 {p.step}
               </span>
             )}
@@ -141,7 +150,12 @@ export default function RoadmapSection() {
               <div
                 className="h-px rounded-full transition-all"
                 style={{
-                  width: p.status === "complete" ? "100%" : p.status === "next" ? "15%" : "0%",
+                  width:
+                    p.status === "complete"
+                      ? "100%"
+                      : p.status === "next"
+                      ? "15%"
+                      : "0%",
                   background: `linear-gradient(90deg, ${p.accent}, transparent)`,
                 }}
               />

@@ -49,3 +49,33 @@ export interface IndicatorsResponse {
   file_count: number;
   files: Array<{ name: string; size: number; modified: string }>;
 }
+
+// ── Backtest chart data interfaces ────────────────────────────────────────────
+// Built to work now with synthetic demo data and later with full 3-month MBO
+// trade logs (hundreds/thousands of markers from real Databento replay).
+
+export interface BacktestChartPoint {
+  /** Step index for synthetic demo; later a Unix timestamp (ms) for MBO replay. */
+  step: number;
+  price: number;
+  label?: string;
+}
+
+export type TradeResult = "WIN" | "LOSS" | "OPEN" | "NONE";
+export type TradeDirection = "BUY" | "SELL";
+export type TradeFilter = "ALL" | "BUY" | "SELL" | "WINNERS" | "LOSERS";
+
+export interface BacktestTradeMarker {
+  id: string;
+  /** Step index in synthetic demo; later the entry timestamp in MBO mode. */
+  step: number;
+  entryPrice: number;
+  exitPrice?: number;
+  direction: TradeDirection;
+  signalType: string;
+  result: TradeResult;
+  stopPrice?: number;
+  tp1Price?: number;
+  tp2Price?: number;
+  reason?: string;
+}

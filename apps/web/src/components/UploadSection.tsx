@@ -2,6 +2,7 @@
 
 import FileSelector from "@/components/FileSelector";
 import { IS_HOSTED_PREVIEW } from "@/lib/env";
+import type { AnalysisResult } from "@/lib/types";
 
 function scrollToLocalSetup() {
   document.getElementById("local-setup")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -10,11 +11,10 @@ function scrollToLocalSetup() {
 function HostedPreviewPanel() {
   return (
     <div className="space-y-4">
-      {/* Info card */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-4.5 h-4.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
@@ -27,7 +27,6 @@ function HostedPreviewPanel() {
             </p>
           </div>
         </div>
-
         <ol className="mt-4 space-y-2">
           {[
             "Clone or open the repo locally",
@@ -45,7 +44,6 @@ function HostedPreviewPanel() {
         </ol>
       </div>
 
-      {/* Mock disabled selector */}
       <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -63,7 +61,7 @@ function HostedPreviewPanel() {
 
       <button
         onClick={scrollToLocalSetup}
-        className="w-full text-sm font-semibold text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-xl py-3 transition-colors"
+        className="w-full text-sm font-semibold text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-xl py-2.5 transition-colors"
       >
         View local setup instructions ↓
       </button>
@@ -71,9 +69,14 @@ function HostedPreviewPanel() {
   );
 }
 
-export default function UploadSection() {
+interface UploadSectionProps {
+  onAnalysis?: (result: AnalysisResult | null, filename: string | null) => void;
+  onViewFileDetails?: () => void;
+}
+
+export default function UploadSection({ onAnalysis, onViewFileDetails }: UploadSectionProps) {
   if (IS_HOSTED_PREVIEW) {
     return <HostedPreviewPanel />;
   }
-  return <FileSelector />;
+  return <FileSelector onAnalysis={onAnalysis} onViewFileDetails={onViewFileDetails} />;
 }

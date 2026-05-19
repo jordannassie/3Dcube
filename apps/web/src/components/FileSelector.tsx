@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import AnalysisReport from "@/components/AnalysisReport";
 import type { AnalysisResult } from "@/lib/types";
 
 interface FileEntry {
@@ -41,29 +40,26 @@ function RefreshIcon({ spinning }: { spinning: boolean }) {
   );
 }
 
-// ── Compact file summary shown after analysis ─────────────────────────────────
+// ── Compact file summary ───────────────────────────────────────────────────────
 
 function CompactFileSummary({
   analysis,
   filename,
-  onViewFull,
-  showFull,
+  onViewFileDetails,
 }: {
   analysis: AnalysisResult;
   filename: string;
-  onViewFull: () => void;
-  showFull: boolean;
+  onViewFileDetails?: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white">
-      {/* File identity row */}
-      <div className="flex items-start gap-3 p-4">
-        <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="flex items-start gap-3 p-3.5">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
           <CsFileIcon className="w-4 h-4 text-blue-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{filename}</p>
-          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          <p className="text-xs font-semibold text-gray-900 truncate">{filename}</p>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             <span className={`badge ${analysis.is_indicator ? "badge-indicator" : analysis.is_strategy ? "badge-strategy" : "badge-offline"}`}>
               {analysis.file_type.charAt(0).toUpperCase() + analysis.file_type.slice(1)}
             </span>
@@ -78,7 +74,7 @@ function CompactFileSummary({
       </div>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+      <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100 bg-gray-50">
         <div className="px-3 py-2 text-center">
           <p className="text-[10px] text-gray-400 uppercase tracking-wide">Params</p>
           <p className="text-sm font-bold text-gray-800 mt-0.5">{analysis.parameters.length}</p>
@@ -93,22 +89,24 @@ function CompactFileSummary({
         </div>
       </div>
 
-      {/* Step 1 complete badge */}
-      <div className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+      {/* Footer row */}
+      <div className="px-3.5 py-2 border-t border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center">
+            <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <span className="text-xs font-semibold text-green-700">Step 1 complete</span>
+          <span className="text-[11px] font-semibold text-green-700">Analyzed</span>
         </div>
-        <button
-          onClick={onViewFull}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
-        >
-          {showFull ? "Hide Analysis ↑" : "View Full Analysis ↓"}
-        </button>
+        {onViewFileDetails && (
+          <button
+            onClick={onViewFileDetails}
+            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            View File Details →
+          </button>
+        )}
       </div>
     </div>
   );
@@ -116,7 +114,14 @@ function CompactFileSummary({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function FileSelector() {
+interface FileSelectorProps {
+  /** Called whenever analysis completes or file is cleared. */
+  onAnalysis?: (result: AnalysisResult | null, filename: string | null) => void;
+  /** Called when user clicks "View File Details" — switch to File Details tab. */
+  onViewFileDetails?: () => void;
+}
+
+export default function FileSelector({ onAnalysis, onViewFileDetails }: FileSelectorProps) {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -125,7 +130,6 @@ export default function FileSelector() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [analyzerError, setAnalyzerError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchFiles = useCallback(async (isRefresh = false) => {
@@ -160,18 +164,22 @@ export default function FileSelector() {
     setSelected(file);
     setAnalysis(null);
     setAnalyzerError(null);
-    setShowFullAnalysis(false);
+    onAnalysis?.(null, file.name);
     setAnalyzing(true);
     try {
       const res = await fetch(`/api/analyze?file=${encodeURIComponent(file.name)}`);
       const data = await res.json();
       if (data.success && data.analysis) {
-        setAnalysis(data.analysis as AnalysisResult);
+        const result = data.analysis as AnalysisResult;
+        setAnalysis(result);
+        onAnalysis?.(result, file.name);
       } else {
         setAnalyzerError(data.error || "Analysis failed.");
+        onAnalysis?.(null, file.name);
       }
     } catch {
       setAnalyzerError("Network error — is the dev server running?");
+      onAnalysis?.(null, file.name);
     } finally {
       setAnalyzing(false);
     }
@@ -181,7 +189,7 @@ export default function FileSelector() {
     setSelected(null);
     setAnalysis(null);
     setAnalyzerError(null);
-    setShowFullAnalysis(false);
+    onAnalysis?.(null, null);
   };
 
   if (loading) {
@@ -196,7 +204,7 @@ export default function FileSelector() {
   return (
     <div className="space-y-3">
 
-      {/* ── Header row ── */}
+      {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -220,7 +228,7 @@ export default function FileSelector() {
         </button>
       </div>
 
-      {/* ── Dropdown ── */}
+      {/* Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => files.length > 0 && setOpen(o => !o)}
@@ -235,15 +243,16 @@ export default function FileSelector() {
           ].join(" ")}
         >
           <CsFileIcon className={`w-4 h-4 flex-shrink-0 ${files.length === 0 ? "text-gray-300" : "text-blue-500"}`} />
-          <span className={`flex-1 text-sm truncate ${files.length === 0 ? "text-gray-400" : selected ? "text-gray-900 font-medium" : "text-gray-500"}`}>
+          <span className={`flex-1 text-sm truncate ${
+            files.length === 0 ? "text-gray-400" : selected ? "text-gray-900 font-medium" : "text-gray-500"
+          }`}>
             {files.length === 0
               ? "No .cs files in Test folder"
               : selected
               ? selected.name
-              : `Choose a file… (${files.length} available)`
-            }
+              : `Choose a file… (${files.length} available)`}
           </span>
-          {selected && (
+          {selected ? (
             <button
               onClick={(e) => { e.stopPropagation(); handleClear(); }}
               className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -252,12 +261,12 @@ export default function FileSelector() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          )}
-          {!selected && files.length > 0 && (
-            <svg className={`w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          ) : files.length > 0 ? (
+            <svg className={`w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
-          )}
+          ) : null}
         </button>
 
         {open && files.length > 0 && (
@@ -288,60 +297,55 @@ export default function FileSelector() {
         )}
       </div>
 
-      {/* ── Empty state ── */}
+      {/* Empty state */}
       {files.length === 0 && (
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-            <CsFileIcon className="w-5 h-5 text-gray-300" />
-          </div>
-          <p className="text-sm font-medium text-gray-500">No .cs files found</p>
-          <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
-            Drop NT8 files into <code className="font-mono text-gray-500 bg-gray-100 px-1 rounded">Test/</code> folder, then click Refresh.
+        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center">
+          <CsFileIcon className="w-5 h-5 text-gray-300 mx-auto mb-2" />
+          <p className="text-xs font-medium text-gray-400">No .cs files found</p>
+          <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
+            Drop NT8 files into <code className="font-mono text-gray-400 bg-gray-100 px-1 rounded">Test/</code>, then click Refresh.
           </p>
         </div>
       )}
 
-      {/* ── Analyzing ── */}
+      {/* Analyzing */}
       {analyzing && (
-        <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 flex items-center gap-3">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3.5 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-blue-400 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-blue-800">Analyzing…</p>
-            <p className="text-xs text-blue-600 font-mono mt-0.5">{selected?.name}</p>
+            <p className="text-xs font-semibold text-blue-800">Analyzing…</p>
+            <p className="text-[11px] text-blue-600 font-mono mt-0.5">{selected?.name}</p>
           </div>
         </div>
       )}
 
-      {/* ── Compact file summary (after analysis) ── */}
+      {/* Compact summary after analysis */}
       {analysis && !analyzing && selected && (
         <CompactFileSummary
           analysis={analysis}
           filename={selected.name}
-          onViewFull={() => setShowFullAnalysis(v => !v)}
-          showFull={showFullAnalysis}
+          onViewFileDetails={onViewFileDetails}
         />
       )}
 
-      {/* ── Analyzer error ── */}
+      {/* Analyzer error */}
       {analyzerError && !analyzing && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5">
           <p className="text-xs font-semibold text-red-700 mb-1">Analysis error</p>
-          <p className="text-xs text-gray-500 font-mono break-all">{analyzerError}</p>
+          <p className="text-[11px] text-gray-500 font-mono break-all">{analyzerError}</p>
         </div>
       )}
 
-      {/* ── Helper hint ── */}
-      {!selected && (
-        <p className="text-[11px] text-gray-400 leading-relaxed">
-          Drop .cs files into <code className="font-mono text-gray-500 bg-gray-100 px-1 rounded">Test/</code> in Finder, then click Refresh.
+      {/* Hint */}
+      {!selected && files.length > 0 && (
+        <p className="text-[11px] text-gray-400">
+          Select a file to begin NT8 structural analysis.
         </p>
       )}
-
-      {/* ── Full analysis report (expandable) ── */}
-      {showFullAnalysis && analysis && selected && (
-        <div className="mt-1">
-          <AnalysisReport result={analysis} originalFilename={selected.name} />
-        </div>
+      {!selected && files.length === 0 && (
+        <p className="text-[11px] text-gray-400">
+          Drop .cs files into <code className="font-mono text-gray-500 bg-gray-100 px-1 rounded">Test/</code> in Finder, then click Refresh.
+        </p>
       )}
     </div>
   );

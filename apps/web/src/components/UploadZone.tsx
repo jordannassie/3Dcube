@@ -22,18 +22,15 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         setMessage("Only .cs NinjaScript files are accepted.");
         return;
       }
-
       setUploadState("uploading");
       setFilename(file.name);
       setMessage("");
 
       const formData = new FormData();
       formData.append("file", file);
-
       try {
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const data = await res.json();
-
         if (data.success) {
           setUploadState("success");
           setMessage(`Saved as ${data.stored_filename}`);
@@ -69,106 +66,108 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
     [doUpload]
   );
 
-  const reset = () => {
-    setUploadState("idle");
-    setMessage("");
-    setFilename("");
-  };
+  const reset = () => { setUploadState("idle"); setMessage(""); setFilename(""); };
 
-  const borderColor =
-    uploadState === "dragging"
-      ? "border-cyan-400"
-      : uploadState === "success"
-      ? "border-emerald-500/50"
-      : uploadState === "error"
-      ? "border-red-500/50"
-      : "border-slate-700/60";
-
-  const bgColor =
-    uploadState === "dragging"
-      ? "bg-cyan-500/5"
-      : uploadState === "success"
-      ? "bg-emerald-500/5"
-      : uploadState === "error"
-      ? "bg-red-500/5"
-      : "bg-transparent";
+  const isDragging = uploadState === "dragging";
+  const isUploading = uploadState === "uploading";
+  const isSuccess = uploadState === "success";
+  const isError = uploadState === "error";
 
   return (
-    <div
-      className={`relative rounded-xl border-2 border-dashed ${borderColor} ${bgColor} transition-all duration-200 cursor-pointer group`}
-      onDragOver={(e) => { e.preventDefault(); setUploadState("dragging"); }}
-      onDragLeave={() => setUploadState(uploadState === "dragging" ? "idle" : uploadState)}
-      onDrop={handleDrop}
-      onClick={() => uploadState === "idle" || uploadState === "error" ? fileInputRef.current?.click() : undefined}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".cs"
-        className="hidden"
-        onChange={handleChange}
-      />
+    <div className="space-y-3">
+      {/* Drop zone */}
+      <div
+        onClick={() => (uploadState === "idle" || isError) && fileInputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setUploadState("dragging"); }}
+        onDragLeave={() => !isUploading && !isSuccess && setUploadState("idle")}
+        onDrop={handleDrop}
+        className={[
+          "relative rounded-xl border-2 border-dashed transition-all duration-150 cursor-pointer select-none",
+          isDragging  ? "border-blue-400 bg-blue-50"  : "",
+          isSuccess   ? "border-green-400 bg-green-50 cursor-default" : "",
+          isError     ? "border-red-300 bg-red-50"    : "",
+          isUploading ? "border-gray-300 bg-gray-50 cursor-wait" : "",
+          !isDragging && !isSuccess && !isError && !isUploading ? "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50" : "",
+        ].filter(Boolean).join(" ")}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".cs"
+          className="hidden"
+          onChange={handleChange}
+        />
 
-      <div className="flex flex-col items-center justify-center gap-3 py-10 px-6 text-center">
-        {uploadState === "idle" && (
-          <>
-            <div className="text-3xl opacity-60 group-hover:opacity-100 transition-opacity">📄</div>
-            <div>
-              <p className="text-sm font-semibold text-slate-300">
-                Drop your NT8 <span className="text-cyan-400">.cs</span> file here
-              </p>
-              <p className="text-xs text-slate-600 mt-1">
-                Indicators and Strategies — click to browse
-              </p>
-            </div>
-            <span className="text-[10px] font-mono tracking-widest text-slate-700 border border-slate-800 rounded px-2 py-0.5">
-              .CS FILES ONLY
-            </span>
-          </>
-        )}
+        <div className="flex flex-col items-center justify-center gap-3 py-10 px-6 text-center">
+          {!isUploading && !isSuccess && !isError && (
+            <>
+              {/* Upload icon */}
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isDragging ? "bg-blue-100" : "bg-gray-100"}`}>
+                <svg className={`w-6 h-6 ${isDragging ? "text-blue-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-700">
+                  {isDragging ? "Drop to upload" : "Drop .cs file here"}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">or choose a file from your computer</p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                Choose .cs File
+              </button>
+              <span className="text-xs text-gray-400">NinjaTrader 8 .cs files only</span>
+            </>
+          )}
 
-        {uploadState === "dragging" && (
-          <>
-            <div className="text-3xl">📂</div>
-            <p className="text-sm font-semibold text-cyan-400">Drop to upload</p>
-          </>
-        )}
+          {isUploading && (
+            <>
+              <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div>
+                <p className="text-sm font-medium text-gray-700">Uploading and analyzing…</p>
+                <p className="text-xs text-gray-400 mt-0.5 font-mono truncate max-w-xs">{filename}</p>
+              </div>
+            </>
+          )}
 
-        {uploadState === "uploading" && (
-          <>
-            <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-slate-300">Uploading and analyzing…</p>
-            <p className="text-xs text-slate-600 font-mono">{filename}</p>
-          </>
-        )}
+          {isSuccess && (
+            <>
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-green-700">File uploaded successfully</p>
+                <p className="text-xs text-gray-400 mt-0.5 font-mono">{message}</p>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); reset(); }} className="text-xs font-medium text-blue-600 hover:text-blue-700">
+                Upload another file
+              </button>
+            </>
+          )}
 
-        {uploadState === "success" && (
-          <>
-            <div className="text-2xl">✅</div>
-            <p className="text-sm font-semibold text-emerald-400">Uploaded successfully</p>
-            <p className="text-xs text-slate-500 font-mono">{message}</p>
-            <button
-              onClick={(e) => { e.stopPropagation(); reset(); }}
-              className="text-[10px] font-semibold tracking-widest text-slate-500 hover:text-slate-300 border border-slate-800 rounded px-3 py-1 mt-1 transition-colors"
-            >
-              UPLOAD ANOTHER
-            </button>
-          </>
-        )}
-
-        {uploadState === "error" && (
-          <>
-            <div className="text-2xl">⚠️</div>
-            <p className="text-sm font-semibold text-red-400">Upload failed</p>
-            <p className="text-xs text-slate-400 max-w-sm">{message}</p>
-            <button
-              onClick={(e) => { e.stopPropagation(); reset(); }}
-              className="text-[10px] font-semibold tracking-widest text-slate-500 hover:text-slate-300 border border-slate-800 rounded px-3 py-1 mt-1 transition-colors"
-            >
-              TRY AGAIN
-            </button>
-          </>
-        )}
+          {isError && (
+            <>
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-red-600">Upload failed</p>
+                <p className="text-xs text-gray-500 mt-1 max-w-xs">{message}</p>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); reset(); }} className="text-xs font-medium text-blue-600 hover:text-blue-700">
+                Try again
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

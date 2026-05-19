@@ -1,23 +1,21 @@
 "use client";
 
 const BARS = [
-  { left: 28,  height: 65, color: "rgba(59,130,246,0.85)",  delay: "0s" },
-  { left: 55,  height: 40, color: "rgba(6,182,212,0.85)",   delay: "0.4s" },
-  { left: 82,  height: 80, color: "rgba(6,182,212,0.7)",    delay: "0.2s" },
-  { left: 109, height: 30, color: "rgba(139,92,246,0.85)",  delay: "0.6s" },
-  { left: 136, height: 90, color: "rgba(236,72,153,0.9)",   delay: "0.1s" },
+  { left: 24,  height: 60, color: "rgba(37,99,235,0.80)"  },
+  { left: 50,  height: 38, color: "rgba(8,145,178,0.78)"  },
+  { left: 76,  height: 75, color: "rgba(8,145,178,0.65)"  },
+  { left: 102, height: 28, color: "rgba(79,70,229,0.78)"  },
+  { left: 128, height: 88, color: "rgba(124,58,237,0.82)" },
 ];
 
 export default function CubePlaceholder() {
   return (
-    <div className="glass-bright rounded-2xl p-8 flex flex-col items-center gap-6 glow-cyan">
+    <div className="card p-8 flex flex-col items-center gap-5">
       {/* Label */}
-      <div className="flex items-center gap-3 w-full">
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
-        <span className="text-[10px] font-bold tracking-[0.25em] text-cyan-400 uppercase">
-          Visual Module
-        </span>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+      <div className="w-full flex items-center gap-3">
+        <div className="h-px flex-1 bg-gray-100" />
+        <span className="section-label">3D Visualization Module</span>
+        <div className="h-px flex-1 bg-gray-100" />
       </div>
 
       {/* 3D Cube */}
@@ -30,7 +28,6 @@ export default function CubePlaceholder() {
           <div className="cube-face face-top" />
           <div className="cube-face face-bottom" />
 
-          {/* 3D bars inside cube */}
           {BARS.map((bar, i) => (
             <div
               key={i}
@@ -38,46 +35,37 @@ export default function CubePlaceholder() {
               style={{
                 left: bar.left,
                 height: bar.height,
-                background: `linear-gradient(to top, ${bar.color}, ${bar.color.replace("0.8", "0.4").replace("0.85", "0.4").replace("0.9", "0.5").replace("0.7", "0.35")})`,
-                boxShadow: `0 0 8px ${bar.color}`,
-                animationDelay: bar.delay,
+                background: `linear-gradient(to top, ${bar.color}, ${bar.color.replace(/[\d.]+\)$/, "0.25)")})`,
               }}
             />
           ))}
         </div>
       </div>
 
-      {/* Footer label */}
+      {/* Label */}
       <div className="text-center">
-        <p className="text-sm font-semibold text-slate-300 tracking-wide">
-          3D Strategy Simulation Cube
-        </p>
-        <p className="text-xs text-slate-600 mt-1 tracking-widest uppercase">
-          Visual Module Coming Next
-        </p>
+        <p className="text-sm font-semibold text-gray-700">3D Strategy Simulation Cube</p>
+        <p className="text-xs text-gray-400 mt-0.5">Visual Module — Phase 9</p>
       </div>
 
-      {/* Axes legend */}
-      <div className="flex gap-6 text-[10px] text-slate-600 font-mono tracking-widest">
+      {/* Axes */}
+      <div className="flex gap-5 text-[10px] text-gray-400 font-mono">
         <span>X: Time</span>
         <span>Y: Return (%)</span>
-        <span>Z: Strategy</span>
+        <span>Z: Strategy variant</span>
       </div>
 
       {/* Color legend */}
       <div className="flex gap-4">
         {[
-          { label: "Long",      color: "#3b82f6" },
-          { label: "Short",     color: "#06b6d4" },
-          { label: "Neutral",   color: "#8b5cf6" },
-          { label: "Peak Edge", color: "#ec4899" },
+          { label: "Long",      color: "#2563EB" },
+          { label: "Short",     color: "#0891B2" },
+          { label: "Neutral",   color: "#4F46E5" },
+          { label: "Peak Edge", color: "#7C3AED" },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
-            <span
-              className="w-2.5 h-2.5 rounded-sm"
-              style={{ background: item.color }}
-            />
-            <span className="text-[10px] text-slate-500">{item.label}</span>
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: item.color }} />
+            <span className="text-[10px] text-gray-400">{item.label}</span>
           </div>
         ))}
       </div>
